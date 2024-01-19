@@ -16,25 +16,36 @@ void GlInit(){
 void Update(){
 
     if(keyboardState['W']){
-
-        glm::vec3 forward = glm::normalize(lookPoint - cameraPos);
-        cameraPos += MOVE_SPEED * forward;
-        lookPoint += MOVE_SPEED * forward;
+        cameraPos.z -= GRAPH_SACLE * MOVE_SPEED * cos(degree * PI / 180.0f);
+        cameraPos.x += GRAPH_SACLE * MOVE_SPEED * sin(degree * PI / 180.0f);
+        lookPoint.z -= GRAPH_SACLE * MOVE_SPEED * cos(degree * PI / 180.0f);
+        lookPoint.x += GRAPH_SACLE * MOVE_SPEED * sin(degree * PI / 180.0f);
+        drawRightDownPoint[0] += MOVE_SPEED * sin(degree * PI / 180.0f);
+        drawRightDownPoint[2] -= MOVE_SPEED * cos(degree * PI / 180.0f);
     }
     if(keyboardState['S']){
-        glm::vec3 backward = glm::normalize(cameraPos - lookPoint);
-        cameraPos += MOVE_SPEED * backward;
-        lookPoint += MOVE_SPEED * backward;
+        cameraPos.z += GRAPH_SACLE * MOVE_SPEED * cos(degree * PI / 180.0f);
+        cameraPos.x -= GRAPH_SACLE * MOVE_SPEED * sin(degree * PI / 180.0f);
+        lookPoint.z += GRAPH_SACLE * MOVE_SPEED * cos(degree * PI / 180.0f);
+        lookPoint.x -= GRAPH_SACLE * MOVE_SPEED * sin(degree * PI / 180.0f);
+        drawRightDownPoint[0] -= MOVE_SPEED * sin(degree * PI / 180.0f);
+        drawRightDownPoint[2] += MOVE_SPEED * cos(degree * PI / 180.0f);
     }
     if(keyboardState['A']){
-        glm::vec3 left = glm::normalize(glm::cross(glm::vec3(0, 1, 0), lookPoint - cameraPos));
-        cameraPos += MOVE_SPEED * left;
-        lookPoint += MOVE_SPEED * left;
+        cameraPos.z += GRAPH_SACLE * MOVE_SPEED * cos((degree + 90) * PI / 180.0f);
+        cameraPos.x -= GRAPH_SACLE * MOVE_SPEED * sin((degree + 90) * PI / 180.0f);
+        lookPoint.z += GRAPH_SACLE * MOVE_SPEED * cos((degree + 90) * PI / 180.0f);
+        lookPoint.x -= GRAPH_SACLE * MOVE_SPEED * sin((degree + 90) * PI / 180.0f);
+        drawRightDownPoint[0] -= MOVE_SPEED * sin((degree + 90) * PI / 180.0f);
+        drawRightDownPoint[2] += MOVE_SPEED * cos((degree + 90) * PI / 180.0f);
     }
     if(keyboardState['D']){
-        glm::vec3 right = glm::normalize(glm::cross(lookPoint - cameraPos, glm::vec3(0, 1, 0)));
-        cameraPos += MOVE_SPEED * right;
-        lookPoint += MOVE_SPEED * right;
+        cameraPos.z -= GRAPH_SACLE * MOVE_SPEED * cos((degree + 90) * PI / 180.0f);
+        cameraPos.x += GRAPH_SACLE * MOVE_SPEED * sin((degree + 90) * PI / 180.0f);
+        lookPoint.z -= GRAPH_SACLE * MOVE_SPEED * cos((degree + 90) * PI / 180.0f);
+        lookPoint.x += GRAPH_SACLE * MOVE_SPEED * sin((degree + 90) * PI / 180.0f);
+        drawRightDownPoint[0] += MOVE_SPEED * sin((degree + 90) * PI / 180.0f);
+        drawRightDownPoint[2] -= MOVE_SPEED * cos((degree + 90) * PI / 180.0f);
     }
 
     // Rotate
@@ -58,14 +69,14 @@ void Update(){
     }
 
     if(directionKey[0]){
-        cameraPos.y += MOVE_SPEED;
-        lookPoint.y += MOVE_SPEED;
+        cameraPos.y += MOVE_SPEED * GRAPH_SACLE;
+        lookPoint.y += MOVE_SPEED * GRAPH_SACLE;
     }
     if(directionKey[1]){
-        cameraPos.y -= MOVE_SPEED;
-        lookPoint.y -= MOVE_SPEED;
+        cameraPos.y -= MOVE_SPEED * GRAPH_SACLE;
+        lookPoint.y -= MOVE_SPEED * GRAPH_SACLE;
     }
-
+    GraphInit();
     glfwPostEmptyEvent();
 }
 
@@ -78,7 +89,7 @@ void DrawGraph(){
             for(int k = 0; k < WIDTH; k++){
                 if(!graph[i][j][k])continue;
                 glPushMatrix();
-                glTranslatef(i, j, k);
+                glTranslatef(drawRightDownPoint[0] + i, drawRightDownPoint[1] + j, drawRightDownPoint[2] + k);
                 int color = graph[i][j][k];
                 Cube(colorArray[color][0], colorArray[color][1], colorArray[color][2]);
                 glPopMatrix();
@@ -96,7 +107,7 @@ void Display(GLFWwindow *window){
     glViewport(0, 0, width, height);
     gluPerspective(60.0f, (float) width / (float) height, 0.1f, 10000.0f);
     gluLookAt(cameraPos.x, cameraPos.y, cameraPos.z, lookPoint.x, lookPoint.y, lookPoint.z, 0.0f, 1.0f, 0.0f);
-    DrawHeadLight(glm::vec3(0.5, 0.5, 0.5), cameraPos, lookPoint - cameraPos, 30.0f, 1.0f);
+    // DrawHeadLight(glm::vec3(0.5, 0.5, 0.5), cameraos, lookPoint - cameraPos, 30.0f, 1.0f);
     DrawSunLight({ 0.8f, 0.8f, 0.8f }, 1.0f);
     DrawGraph();
     // DrawFloor();

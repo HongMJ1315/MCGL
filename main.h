@@ -23,14 +23,14 @@
 #include <GL/glext.h>
 #include <GL/glu.h>
 
-#define HEIGHT 32 // x
-#define LENGTH 32 // y
-#define WIDTH 32 // z
+#define HEIGHT  32 // x
+#define LENGTH  32 // y
+#define WIDTH   32 // z
 
 #define GRAPH_SACLE 10.0f
 
 #define ROTATE_SPEED 5.0f
-#define MOVE_SPEED 5.0f
+#define MOVE_SPEED 1.0f
 
 #define PERLIN_FREQ 0.1f
 #define PERLIN_OCTAVE 5
@@ -40,12 +40,14 @@
 
 float perlinFreq = PERLIN_FREQ;
 // Window size
-int width = 800;
-int height = 600;
+int width = (2048 + 1024) / 2;
+int height = width / 16 * 9;
 
 // Camera position
 glm::vec3 cameraPos = glm::vec3(0.0f, 10.0f, 0.0f);
 glm::vec3 lookPoint = glm::vec3(0.0f, 10.0f, 10.0f);
+
+float drawRightDownPoint[3] = { 0.0f - HEIGHT / 2.0, 0.0f, 0.0f - WIDTH / 2.0 };
 float degree = 180.0f;
 
 float points[][3] = { {0, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0, 1, 0}, {0, 0, 1}, {1, 0, 1}, {1, 1, 1}, {0, 1, 1} };
@@ -211,7 +213,11 @@ void GraphInit(){
     for(int h = 0; h < HEIGHT; h++){
         for(int i = 0; i < LENGTH; i++){
             for(int j = 0; j < WIDTH; j++){
-                float n = perlin.normalizedOctave3D_01(h * perlinFreq, i * perlinFreq, j * perlinFreq, PERLIN_OCTAVE);
+                float n = perlin.normalizedOctave3D_01(
+                    (h + drawRightDownPoint[0]) * perlinFreq,
+                    (i + drawRightDownPoint[1]) * perlinFreq,
+                    (j + drawRightDownPoint[2]) * perlinFreq,
+                    PERLIN_OCTAVE);
                 graph[h][i][j] = (n > 0.5 ? 1 : 0);
             }
         }
@@ -220,7 +226,10 @@ void GraphInit(){
     perlin.reseed(mt());
     for(int i = 0; i < HEIGHT; i++){
         for(int j = 0; j < WIDTH; j++){
-            float n = perlin.normalizedOctave2D_01(i * perlinFreq * 2, j * perlinFreq * 2, PERLIN_OCTAVE);
+            float n = perlin.normalizedOctave2D_01(
+                (i + drawRightDownPoint[0]) * perlinFreq * 2,
+                (j + drawRightDownPoint[2]) * perlinFreq * 2,
+                PERLIN_OCTAVE);
             int nn = std::min(n * 20 + LENGTH * 1 / 4, float(LENGTH - 1));
             tmpGraph[i][j] = nn;
         }
@@ -228,7 +237,10 @@ void GraphInit(){
     perlin.reseed(mt());
     for(int i = 0; i < HEIGHT; i++){
         for(int j = 0; j < WIDTH; j++){
-            float n = perlin.normalizedOctave2D_01(i * perlinFreq * 2, j * perlinFreq * 2, PERLIN_OCTAVE);
+            float n = perlin.normalizedOctave2D_01(
+                (i + drawRightDownPoint[0]) * perlinFreq * 2,
+                (j + drawRightDownPoint[2]) * perlinFreq * 2,
+                PERLIN_OCTAVE);
             int nn = std::min(n * 20 + LENGTH * 2 / 4, float(LENGTH - 1));
             for(int k = tmpGraph[i][j]; k < nn; k++){
                 if(graph[i][k][j] == 0) continue;
@@ -245,8 +257,8 @@ void GraphInit(){
 void FindSpawnPoint(){
     for(int i = LENGTH - 1; i >= 0; i--){
         if(graph[HEIGHT / 2][i][WIDTH / 2] == 0){
-            cameraPos = glm::vec3(HEIGHT / 2, i + 1, WIDTH / 2) * GRAPH_SACLE;
-            lookPoint = glm::vec3(HEIGHT / 2, i + 1, WIDTH / 2 + 1) * GRAPH_SACLE;
+            cameraPos = glm::vec3(0, i + 1, 0) * GRAPH_SACLE;
+            lookPoint = glm::vec3(0, i + 1, 0 + 1) * GRAPH_SACLE;
             break;
         }
     }
