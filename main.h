@@ -46,9 +46,9 @@ int height = width / 16 * 9;
 // Camera position
 glm::vec3 cameraPos = glm::vec3(0.0f, 10.0f, 0.0f);
 glm::vec3 lookPoint = glm::vec3(0.0f, 10.0f, 10.0f);
-
-float drawRightDownPoint[3] = { 0.0f - HEIGHT / 2.0, 0.0f, 0.0f - WIDTH / 2.0 };
 float degree = 180.0f;
+
+float drawRightDownPoint[3] = { 0 - HEIGHT / 2.0, 0, 0 - WIDTH / 2.0 };
 
 float points[][3] = { {0, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0, 1, 0}, {0, 0, 1}, {1, 0, 1}, {1, 1, 1}, {0, 1, 1} };
 int face[][4] = { {0, 3, 2, 1}, {0, 1, 5, 4}, {1, 2, 6, 5}, {4, 5, 6, 7}, {2, 3, 7, 6}, {0, 4, 7, 3} };
@@ -214,9 +214,9 @@ void GraphInit(){
         for(int i = 0; i < LENGTH; i++){
             for(int j = 0; j < WIDTH; j++){
                 float n = perlin.normalizedOctave3D_01(
-                    (h + drawRightDownPoint[0]) * perlinFreq,
-                    (i + drawRightDownPoint[1]) * perlinFreq,
-                    (j + drawRightDownPoint[2]) * perlinFreq,
+                    (h + floor(drawRightDownPoint[0])) * perlinFreq,
+                    (i + floor(drawRightDownPoint[1])) * perlinFreq,
+                    (j + floor(drawRightDownPoint[2])) * perlinFreq,
                     PERLIN_OCTAVE);
                 graph[h][i][j] = (n > 0.5 ? 1 : 0);
             }
@@ -227,8 +227,8 @@ void GraphInit(){
     for(int i = 0; i < HEIGHT; i++){
         for(int j = 0; j < WIDTH; j++){
             float n = perlin.normalizedOctave2D_01(
-                (i + drawRightDownPoint[0]) * perlinFreq * 2,
-                (j + drawRightDownPoint[2]) * perlinFreq * 2,
+                (i + floor(drawRightDownPoint[0])) * perlinFreq * 2,
+                (j + floor(drawRightDownPoint[2])) * perlinFreq * 2,
                 PERLIN_OCTAVE);
             int nn = std::min(n * 20 + LENGTH * 1 / 4, float(LENGTH - 1));
             tmpGraph[i][j] = nn;
@@ -238,8 +238,8 @@ void GraphInit(){
     for(int i = 0; i < HEIGHT; i++){
         for(int j = 0; j < WIDTH; j++){
             float n = perlin.normalizedOctave2D_01(
-                (i + drawRightDownPoint[0]) * perlinFreq * 2,
-                (j + drawRightDownPoint[2]) * perlinFreq * 2,
+                (i + floor(drawRightDownPoint[0])) * perlinFreq * 2,
+                (j + floor(drawRightDownPoint[2])) * perlinFreq * 2,
                 PERLIN_OCTAVE);
             int nn = std::min(n * 20 + LENGTH * 2 / 4, float(LENGTH - 1));
             for(int k = tmpGraph[i][j]; k < nn; k++){

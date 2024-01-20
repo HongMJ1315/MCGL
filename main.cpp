@@ -89,7 +89,10 @@ void DrawGraph(){
             for(int k = 0; k < WIDTH; k++){
                 if(!graph[i][j][k])continue;
                 glPushMatrix();
-                glTranslatef(drawRightDownPoint[0] + i, drawRightDownPoint[1] + j, drawRightDownPoint[2] + k);
+                glTranslatef(
+                    (floor(drawRightDownPoint[0]) + i),
+                    (floor(drawRightDownPoint[1]) + j),
+                    (floor(drawRightDownPoint[2]) + k));
                 int color = graph[i][j][k];
                 Cube(colorArray[color][0], colorArray[color][1], colorArray[color][2]);
                 glPopMatrix();
