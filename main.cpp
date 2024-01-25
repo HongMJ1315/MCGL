@@ -12,40 +12,39 @@ void GlInit(){
     glEnable(HEAD_LIGHT);
 }
 
+void Move(float dx, float dy, float dz){
+    glMatrixMode(GL_MODELVIEW);
+    cameraPos.x += GRAPH_SACLE * dx;
+    cameraPos.y += GRAPH_SACLE * dy;
+    cameraPos.z += GRAPH_SACLE * dz;
+    lookPoint.x += GRAPH_SACLE * dx;
+    lookPoint.y += GRAPH_SACLE * dy;
+    lookPoint.z += GRAPH_SACLE * dz;
+    drawRightDownPoint[0] += dx;
+    // drawRightDownPoint[1] += dy;
+    drawRightDownPoint[2] += dz;
+}
 
 void Update(){
-
     if(keyboardState['W']){
-        cameraPos.z -= GRAPH_SACLE * MOVE_SPEED * cos(degree * PI / 180.0f);
-        cameraPos.x += GRAPH_SACLE * MOVE_SPEED * sin(degree * PI / 180.0f);
-        lookPoint.z -= GRAPH_SACLE * MOVE_SPEED * cos(degree * PI / 180.0f);
-        lookPoint.x += GRAPH_SACLE * MOVE_SPEED * sin(degree * PI / 180.0f);
-        drawRightDownPoint[0] += MOVE_SPEED * sin(degree * PI / 180.0f);
-        drawRightDownPoint[2] -= MOVE_SPEED * cos(degree * PI / 180.0f);
+        float dx = MOVE_SPEED * sin(degree * PI / 180.0f);
+        float dz = MOVE_SPEED * cos(degree * PI / 180.0f);
+        Move(dx, 0.0f, -dz);
     }
     if(keyboardState['S']){
-        cameraPos.z += GRAPH_SACLE * MOVE_SPEED * cos(degree * PI / 180.0f);
-        cameraPos.x -= GRAPH_SACLE * MOVE_SPEED * sin(degree * PI / 180.0f);
-        lookPoint.z += GRAPH_SACLE * MOVE_SPEED * cos(degree * PI / 180.0f);
-        lookPoint.x -= GRAPH_SACLE * MOVE_SPEED * sin(degree * PI / 180.0f);
-        drawRightDownPoint[0] -= MOVE_SPEED * sin(degree * PI / 180.0f);
-        drawRightDownPoint[2] += MOVE_SPEED * cos(degree * PI / 180.0f);
+        float dx = MOVE_SPEED * sin(degree * PI / 180.0f);
+        float dz = MOVE_SPEED * cos(degree * PI / 180.0f);
+        Move(-dx, 0.0f, dz);
     }
     if(keyboardState['A']){
-        cameraPos.z += GRAPH_SACLE * MOVE_SPEED * cos((degree + 90) * PI / 180.0f);
-        cameraPos.x -= GRAPH_SACLE * MOVE_SPEED * sin((degree + 90) * PI / 180.0f);
-        lookPoint.z += GRAPH_SACLE * MOVE_SPEED * cos((degree + 90) * PI / 180.0f);
-        lookPoint.x -= GRAPH_SACLE * MOVE_SPEED * sin((degree + 90) * PI / 180.0f);
-        drawRightDownPoint[0] -= MOVE_SPEED * sin((degree + 90) * PI / 180.0f);
-        drawRightDownPoint[2] += MOVE_SPEED * cos((degree + 90) * PI / 180.0f);
+        float dx = MOVE_SPEED * sin((degree + 90) * PI / 180.0f);
+        float dz = MOVE_SPEED * cos((degree + 90) * PI / 180.0f);
+        Move(-dx, 0.0f, dz);
     }
     if(keyboardState['D']){
-        cameraPos.z -= GRAPH_SACLE * MOVE_SPEED * cos((degree + 90) * PI / 180.0f);
-        cameraPos.x += GRAPH_SACLE * MOVE_SPEED * sin((degree + 90) * PI / 180.0f);
-        lookPoint.z -= GRAPH_SACLE * MOVE_SPEED * cos((degree + 90) * PI / 180.0f);
-        lookPoint.x += GRAPH_SACLE * MOVE_SPEED * sin((degree + 90) * PI / 180.0f);
-        drawRightDownPoint[0] += MOVE_SPEED * sin((degree + 90) * PI / 180.0f);
-        drawRightDownPoint[2] -= MOVE_SPEED * cos((degree + 90) * PI / 180.0f);
+        float dx = MOVE_SPEED * sin((degree + 90) * PI / 180.0f);
+        float dz = MOVE_SPEED * cos((degree + 90) * PI / 180.0f);
+        Move(dx, 0.0f, -dz);
     }
 
     // Rotate
@@ -80,41 +79,22 @@ void Update(){
     glfwPostEmptyEvent();
 }
 
-void DrawGraph(){
+
+
+void SingleView(GLFWwindow *window){
     glMatrixMode(GL_MODELVIEW);
-    glScalef(GRAPH_SACLE, GRAPH_SACLE, GRAPH_SACLE);
-    glPushMatrix();
-    for(int i = 0; i < HEIGHT; i++){
-        for(int j = 0; j < LENGTH; j++){
-            for(int k = 0; k < WIDTH; k++){
-                if(!graph[i][j][k])continue;
-                glPushMatrix();
-                glTranslatef(
-                    (floor(drawRightDownPoint[0]) + i),
-                    (floor(drawRightDownPoint[1]) + j),
-                    (floor(drawRightDownPoint[2]) + k));
-                int color = graph[i][j][k];
-                Cube(colorArray[color][0], colorArray[color][1], colorArray[color][2]);
-                glPopMatrix();
-            }
-        }
-    }
-    glPopMatrix();
+
+    SetLook(cameraPos);
+    DrawView();
 }
 
 void Display(GLFWwindow *window){
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_MODELVIEW);
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
-    glViewport(0, 0, width, height);
-    gluPerspective(60.0f, (float) width / (float) height, 0.1f, 10000.0f);
-    gluLookAt(cameraPos.x, cameraPos.y, cameraPos.z, lookPoint.x, lookPoint.y, lookPoint.z, 0.0f, 1.0f, 0.0f);
-    // DrawHeadLight(glm::vec3(0.5, 0.5, 0.5), cameraos, lookPoint - cameraPos, 30.0f, 1.0f);
-    DrawSunLight({ 0.8f, 0.8f, 0.8f }, 1.0f);
-    DrawGraph();
-    // DrawFloor();
+    SingleView(window);
     glfwSwapBuffers(window);
+
     GLenum error = glGetError();
     if(error != GL_NO_ERROR){
         // 在這裡處理錯誤，例如輸出錯誤信息
@@ -130,7 +110,7 @@ void Reshape(GLFWwindow *window, int w, int h){
     Display(window);
 }
 
-void KeyboardDown(GLFWwindow *window, int key, int scancode, int action, int mods){
+void KeyboardEvent(GLFWwindow *window, int key, int scancode, int action, int mods){
     if(action == GLFW_PRESS){
         keyboardState[key] = true;
 
@@ -154,6 +134,10 @@ void KeyboardDown(GLFWwindow *window, int key, int scancode, int action, int mod
             break;
             case GLFW_KEY_RIGHT:
             directionKey[3] = true;
+            break;
+            // 0
+            case GLFW_KEY_0:
+            viewMode = !viewMode;
             break;
         }
     }
@@ -187,7 +171,7 @@ int main(){
     }
 
     glfwMakeContextCurrent(window);
-    glfwSetKeyCallback(window, KeyboardDown);
+    glfwSetKeyCallback(window, KeyboardEvent);
     glfwSetWindowSizeCallback(window, Reshape);
     glfwSetCursorPosCallback(window, nullptr);
     glfwSetMouseButtonCallback(window, nullptr);

@@ -23,11 +23,11 @@
 #include <GL/glext.h>
 #include <GL/glu.h>
 
-#define HEIGHT  32 // x
-#define LENGTH  32 // y
-#define WIDTH   32 // z
+#define DEFAULT_HEIGHT  32 // x
+#define DEFAULT_LENGTH  32 // y
+#define DEFAULT_WIDTH   32 // z
 
-#define GRAPH_SACLE 10.0f
+#define GRAPH_SACLE 100.0f
 
 #define ROTATE_SPEED 5.0f
 #define MOVE_SPEED 1.0f
@@ -48,28 +48,22 @@ glm::vec3 cameraPos = glm::vec3(0.0f, 10.0f, 0.0f);
 glm::vec3 lookPoint = glm::vec3(0.0f, 10.0f, 10.0f);
 float degree = 180.0f;
 
-float drawRightDownPoint[3] = { 0 - HEIGHT / 2.0, 0, 0 - WIDTH / 2.0 };
+float drawRightDownPoint[3] = { 0 - DEFAULT_HEIGHT / 2.0, 0, 0 - DEFAULT_WIDTH / 2.0 };
 
 float points[][3] = { {0, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0, 1, 0}, {0, 0, 1}, {1, 0, 1}, {1, 1, 1}, {0, 1, 1} };
 int face[][4] = { {0, 3, 2, 1}, {0, 1, 5, 4}, {1, 2, 6, 5}, {4, 5, 6, 7}, {2, 3, 7, 6}, {0, 4, 7, 3} };
 
-int graph[HEIGHT][LENGTH][WIDTH];
-int tmpGraph[HEIGHT][WIDTH];
+int graph[DEFAULT_HEIGHT][DEFAULT_LENGTH][DEFAULT_WIDTH];
+int tmpGraph[DEFAULT_HEIGHT][DEFAULT_WIDTH];
 
 bool keyboardState[1000];
 bool directionKey[4];
 
-float colorArray[][3] = {
-    // 0
-    {0, 0, 0},
-    // 97, 106, 107
-    {97 / 255.0f, 106 / 255.0f, 107 / 255.0f},
-    // 142, 86, 26 
-    {142 / 255.0f, 86 / 255.0f, 26 / 255.0f},
-    // 35, 155, 86
-    {35 / 255.0f, 155 / 255.0f, 86 / 255.0f}
-};
+bool viewMode = false;
 
+int HEIGHT = DEFAULT_HEIGHT;
+int LENGTH = DEFAULT_LENGTH;
+int WIDTH = DEFAULT_WIDTH;
 
 GLuint programID; // Shader program ID
 GLuint vertexArrayID; // Vertex Array Object ID
@@ -78,6 +72,22 @@ GLuint vertexBufferID; // Vertex Buffer Object ID
 enum material{
     FLOOR, EARTH
 } MATERIAL;
+
+enum blockType{
+    AIR = 0, BEDROCK = 1, STONE, DIRT, GRASS
+} BLOCK_TYPE;
+float colorArray[][3] = {
+    // 0
+    {0, 0, 0},
+    // bedrock
+    {45 / 255.0f, 45 / 255.0f, 45 / 255.0f},
+    // stone
+    {97 / 255.0f, 106 / 255.0f, 107 / 255.0f},
+    // dirt
+    {142 / 255.0f, 86 / 255.0f, 26 / 255.0f},
+    // grass
+    {35 / 255.0f, 155 / 255.0f, 86 / 255.0f}
+};
 
 void Cube(float r, float g, float b);
 
@@ -185,6 +195,10 @@ void Cube(float r, float g, float b){
     glPopMatrix();
 }
 
+void DrawAxisString(){
+  
+}
+
 void DrawFloor(){
     int i, j;
     glMatrixMode(GL_MODELVIEW);
@@ -205,6 +219,43 @@ void DrawFloor(){
         }
 }
 
+void SetLook(glm::vec3 pos){
+    glViewport(0, 0, width, height);
+    gluPerspective(60.0f, (float) width / (float) height, 0.1f, 10000.0f);
+}
+
+void DrawGraph(){
+    glMatrixMode(GL_MODELVIEW);
+    glScalef(GRAPH_SACLE, GRAPH_SACLE, GRAPH_SACLE);
+    glPushMatrix();
+    for(int i = 0; i < HEIGHT; i++){
+        for(int j = 0; j < LENGTH; j++){
+            for(int k = 0; k < WIDTH; k++){
+                if(!graph[i][j][k])continue;
+                glPushMatrix();
+                glTranslatef(
+                    (floor(drawRightDownPoint[0]) + i),
+                    (floor(drawRightDownPoint[1]) + j),
+                    (floor(drawRightDownPoint[2]) + k));
+                int type = graph[i][j][k];
+                // if(type == 1)
+                Cube(colorArray[type][0], colorArray[type][1], colorArray[type][2]);
+                glPopMatrix();
+            }
+        }
+    }
+    glPopMatrix();
+}
+
+void DrawView(){
+    gluLookAt(cameraPos.x, cameraPos.y, cameraPos.z, lookPoint.x, lookPoint.y, lookPoint.z, 0.0f, 1.0f, 0.0f);
+    // DrawHeadLight(glm::vec3(0.5, 0.5, 0.5), cameraos, lookPoint - cameraPos, 30.0f, 1.0f);
+    DrawAxisString();
+    DrawSunLight({ 0.8f, 0.8f, 0.8f }, 1.0f);
+    DrawGraph();
+    // DrawFloor();
+}
+
 void GraphInit(){
     unsigned int seed = 0;
     std::mt19937 mt{ seed };
@@ -218,7 +269,7 @@ void GraphInit(){
                     (i + floor(drawRightDownPoint[1])) * perlinFreq,
                     (j + floor(drawRightDownPoint[2])) * perlinFreq,
                     PERLIN_OCTAVE);
-                graph[h][i][j] = (n > 0.5 ? 1 : 0);
+                graph[h][i][j] = (n > 0.5 ? blockType::STONE : blockType::AIR);
             }
         }
     }
@@ -244,14 +295,24 @@ void GraphInit(){
             int nn = std::min(n * 20 + LENGTH * 2 / 4, float(LENGTH - 1));
             for(int k = tmpGraph[i][j]; k < nn; k++){
                 if(graph[i][k][j] == 0) continue;
-                graph[i][k][j] = 2;
+                graph[i][k][j] = blockType::DIRT;
             }
             for(int k = nn + 1; k < LENGTH; k++)
-                graph[i][k][j] = 0;
+                graph[i][k][j] = blockType::AIR;
             if(graph[i][nn][j] == 0) continue;
-            graph[i][nn][j] = 3;
+            graph[i][nn][j] = blockType::GRASS;
         }
     }
+    perlin.reseed(mt());
+    for(int i = 0; i < HEIGHT; i++){
+        for(int j = 0; j < WIDTH; j++){
+            for(int k = 1; k < 3; k++){
+                graph[i][k][j] = (mt() % 2 ? blockType::BEDROCK : graph[i][k][j]);
+            }
+            graph[i][0][j] = blockType::BEDROCK;
+        }
+    }
+
 }
 
 void FindSpawnPoint(){
