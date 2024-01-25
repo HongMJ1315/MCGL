@@ -29,6 +29,7 @@ find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(OpenCV 4 REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(Freetype REQUIRED)
 
 link_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -51,5 +52,6 @@ foreach(ex IN LISTS Codes)
         GLUT::GLUT
         ${OpenCV_LIBS}
         Eigen3::Eigen
+        Freetype::Freetype
     )
 endforeach()

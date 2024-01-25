@@ -1,19 +1,37 @@
-#include "main.h"
+#include "draw.h"
 
 void GlInit(){
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    glClearDepth(1.0);
-    glEnable(GL_LIGHTING);
     glLoadIdentity();
 
     glEnable(SUN_LIGHT);
     glEnable(HEAD_LIGHT);
 }
 
+int FTInit(){
+    // 初始化FreeType
+    if(FT_Init_FreeType(&ft)){
+        return -1;
+    }
+
+    // 載入字型文件
+    if(FT_New_Face(ft, "path/to/your/font.ttf", 0, &ftFace)){
+        return -1;
+    }
+
+    // 設置字型大小
+    FT_Set_Pixel_Sizes(ftFace, 0, 24);
+
+}
+
 void Move(float dx, float dy, float dz){
     glMatrixMode(GL_MODELVIEW);
+    int x = (int) floor(cameraPos.x + dx);
+    int z = (int) floor(cameraPos.z + dz);
+    if(graph[x][(int) floor(cameraPos.y)][z] != 0){
+        return;
+    }
     cameraPos.x += GRAPH_SACLE * dx;
     cameraPos.y += GRAPH_SACLE * dy;
     cameraPos.z += GRAPH_SACLE * dz;
@@ -93,6 +111,7 @@ void Display(GLFWwindow *window){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
     SingleView(window);
+    DrawCoordinateString();
     glfwSwapBuffers(window);
 
     GLenum error = glGetError();
@@ -159,7 +178,8 @@ void KeyboardEvent(GLFWwindow *window, int key, int scancode, int action, int mo
         }
     }
 }
-int main(){
+int main(int argc, char **argv){
+    glutInit(&argc, argv);
     if(!glfwInit()){
         return -1;
     }
