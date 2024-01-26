@@ -27,9 +27,11 @@ int FTInit(){
 
 void Move(float dx, float dy, float dz){
     glMatrixMode(GL_MODELVIEW);
-    int x = (int) floor(cameraPos.x + dx);
-    int z = (int) floor(cameraPos.z + dz);
-    if(graph[x][(int) floor(cameraPos.y)][z] != 0){
+    int hfront = (int) floor(HEIGHT / 2 + (dx / MOVE_SPEED));
+    int ffront = (int) floor(WIDTH / 2 + (dz / MOVE_SPEED));
+    std::cout << hfront << " " << ffront << std::endl;
+    if(graph[hfront][(int) floor(cameraPos.y - 1)][ffront] != 0 ||
+        graph[hfront][(int) floor(cameraPos.y)][ffront] != 0){
         return;
     }
     cameraPos.x += GRAPH_SACLE * dx;
@@ -113,7 +115,7 @@ void Display(GLFWwindow *window){
     SingleView(window);
     DrawCoordinateString();
     glfwSwapBuffers(window);
-
+    // DropPositon();
     GLenum error = glGetError();
     if(error != GL_NO_ERROR){
         // 在這裡處理錯誤，例如輸出錯誤信息

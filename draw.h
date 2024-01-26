@@ -7,8 +7,10 @@
 void DrawCoordinateString(){
     std::string coordinateStr = "x: " + std::to_string(cameraPos.x).substr(0, 5) + " y: " + std::to_string(cameraPos.y).substr(0, 5) + " z: " + std::to_string(cameraPos.z).substr(0, 5);
     std::string rightDownPointStr = "x: " + std::to_string(floor(drawRightDownPoint[0])).substr(0, 5) + " z: " + std::to_string(floor(drawRightDownPoint[2])).substr(0, 5);
-    std::string standOn = std::to_string(graph[HEIGHT / 2][(int) floor(cameraPos.y)][WIDTH / 2]) + " " + std::to_string((int) floor(cameraPos.y - 2));
-    
+    std::string standOn = "Floor: x: " + std::to_string(HEIGHT / 2) + " y: " + std::to_string((int) floor(std::min(cameraPos.y - 2, (float) LENGTH - 1))) + " z: " + std::to_string(WIDTH / 2) + std::to_string(graph[HEIGHT / 2][(int) floor(std::min(cameraPos.y - 2, (float) LENGTH - 1))][WIDTH / 2]);
+    std::string seeBlock = "Front: x: " + std::to_string((int) floor(HEIGHT / 2 + sin(degree * PI / 180.0f))) + " y: " + std::to_string((int) floor(cameraPos.y - 1)) + " z: " + std::to_string((int) floor(WIDTH / 2 - cos(degree * PI / 180.0f))) + " Block : " + std::to_string(graph[(int) floor(HEIGHT / 2 + sin(degree * PI / 180.0f))][(int) floor(cameraPos.y - 1)][(int) floor(WIDTH / 2 - cos(degree * PI / 180.0f))]);
+
+
     glMatrixMode(GL_PROJECTION);
     glDisable(GL_LIGHTING);
     glPushMatrix();
@@ -28,6 +30,10 @@ void DrawCoordinateString(){
     glRasterPos2f(10, height - 90);
     for(int i = 0; i < standOn.length(); i++){
         glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, standOn[i]);
+    }
+    glRasterPos2f(10, height - 120);
+    for(int i = 0; i < seeBlock.length(); i++){
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, seeBlock[i]);
     }
 
     glPopMatrix();

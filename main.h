@@ -35,7 +35,7 @@
 #define GRAPH_SACLE 1.0f
 
 #define ROTATE_SPEED 5.0f
-#define MOVE_SPEED 0.1f
+#define MOVE_SPEED 0.4f
 
 #define PERLIN_FREQ 0.1f
 #define PERLIN_OCTAVE 5
@@ -138,7 +138,7 @@ void SetLook(glm::vec3 pos){
 
 
 void GraphInit(){
-    unsigned int seed = 1;
+    unsigned int seed = 5;
     std::mt19937 mt{ seed };
     siv::PerlinNoise perlin{ mt() };
 
@@ -188,7 +188,11 @@ void GraphInit(){
     for(int i = 0; i < HEIGHT; i++){
         for(int j = 0; j < WIDTH; j++){
             for(int k = 1; k < 3; k++){
-                graph[i][k][j] = (mt() % 2 ? blockType::BEDROCK : graph[i][k][j]);
+                graph[i][k][j] = perlin.normalizedOctave3D_01(
+                    (i + floor(drawRightDownPoint[0])) * perlinFreq * 5,
+                    (k + floor(drawRightDownPoint[1])) * perlinFreq * 10,
+                    (j + floor(drawRightDownPoint[2])) * perlinFreq * 5,
+                    PERLIN_OCTAVE * 10) > 0.5 ? blockType::AIR : blockType::BEDROCK;
             }
             graph[i][0][j] = blockType::BEDROCK;
         }
@@ -198,12 +202,24 @@ void GraphInit(){
 
 void FindSpawnPoint(){
     for(int i = LENGTH - 1; i >= 0; i--){
-        if(graph[HEIGHT / 2][i - 2][WIDTH / 2] != 0){
-            cameraPos = glm::vec3(0.5, i + 1, 0.5) * GRAPH_SACLE;
-            lookPoint = glm::vec3(0.5, i + 1, 0 + 1.5) * GRAPH_SACLE;
+        if(graph[HEIGHT / 2][i - 1][WIDTH / 2] != 0){
+            cameraPos = glm::vec3(0.5, i + 1.5, 0.5) * GRAPH_SACLE;
+            lookPoint = glm::vec3(0.5, i + 1.5, 1.5) * GRAPH_SACLE;
             break;
         }
     }
+}
+
+void DropPositon(){
+    int x = (int) floor(cameraPos.x);
+    int y = (int) floor(cameraPos.y);
+    int z = (int) floor(cameraPos.z);
+    if(graph[x][y - 1][z] != 0){
+        return;
+    }
+    cameraPos.y -= GRAPH_SACLE;
+    lookPoint.y -= GRAPH_SACLE;
+    drawRightDownPoint[1] -= 1;
 }
 
 #endif // MAIN_H
